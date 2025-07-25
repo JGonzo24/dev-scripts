@@ -52,12 +52,20 @@ EOF
 cat > "$project_name/Makefile" <<EOF
 CXX = g++
 CXXFLAGS = -Wall -Wextra -Iinclude
-SRC = \$(wildcard src/*.cpp)
-OBJ = \$(SRC:.cpp=.o)
-main: \$(OBJ)
-	\$(CXX) \$(CXXFLAGS) -o build/main \$(OBJ)
+SRC = $(wildcard src/*.cpp)
+OBJ = $(patsubst src/%.cpp, build/%.o, $(SRC))
+
+main: build/main
+
+build/main: $(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+build/%.o: src/%.cpp
+	mkdir -p build
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 clean:
-	rm -f src/*.o build/main
+	rm -rf build
 EOF
 
             ;;
@@ -104,6 +112,6 @@ setup_doxygen() {
 create_structure
 setup_language_files
 
-if [[ "$language"="cpp" || "$language"="c" ]]; then
+if [[ "$language"=="cpp" || "$language"=="c" ]]; then
    setup_doxygen 
 fi
